@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fotcbot.iml" filepath="$PROJECT_DIR$/.idea/modules/fotcbot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fotcbot_main.iml" filepath="$PROJECT_DIR$/.idea/modules/fotcbot_main.iml" group="fotcbot" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fotcbot_test.iml" filepath="$PROJECT_DIR$/.idea/modules/fotcbot_test.iml" group="fotcbot" />
+    </modules>
+  </component>
+</project>
