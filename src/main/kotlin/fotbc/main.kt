@@ -3,6 +3,7 @@ package fotbc
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.TelegramBotsApi
 import org.telegram.telegrambots.api.methods.send.SendMessage
+import org.telegram.telegrambots.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.api.objects.Chat
 import org.telegram.telegrambots.api.objects.Message
 import org.telegram.telegrambots.api.objects.Update
@@ -33,36 +34,46 @@ class GreetCommand : BotCommand("greet", "Greet a user.") {
     }
 }
 
-class MeCommand : BotCommand("me", "Replaces \"/me\" with the users first name.") {
-    override fun execute(absSender: AbsSender?, user: User?, chat: Chat?, arguments: Array<out String>?) {
-        val m = SendMessage()
-        m.text = "%s %s".format(user?.firstName, arguments?.joinToString(" "))
-        m.setChatId(chat?.id)
-        try {
-            absSender?.sendMessage(m)
-        } catch(e: TelegramApiException) {
-            BotLogger.error(LOGTAG, e)
-        }
-    }
-
-}
-
-
 class FotcBot : TelegramLongPollingCommandBot("FollowerOfTemercalypsersBot") {
 
     override fun getBotToken() = ""
 
     override fun processNonCommandUpdate(update: Update?) {
-        BotLogger.info(LOGTAG, "Received non-command update.")
+        if (update?.hasMessage()!!) {
+            val msgText = update.message.text
+            if (msgText.startsWith("/me")) {
+                BotLogger.info(LOGTAG, "Handling /me")
+                handleMeCommand(update.message)
+            }
+        }
     }
 
     override fun filter(message: Message?): Boolean {
         return message?.isChannelMessage!!
     }
 
+    private fun handleMeCommand(message: Message) {
+        val msgText = message.text.substring("/me".length).trim()
+        val replacingMesssage = SendMessage()
+        replacingMesssage.enableMarkdown(true)
+        replacingMesssage.setChatId(message.chatId)
+        replacingMesssage.text = "*%s %s*".format(message.from.firstName, msgText)
+        try {
+            sendMessage(replacingMesssage)
+        } catch (e: TelegramApiException) {
+            BotLogger.error(LOGTAG, e)
+        }
+
+        val deletedMessage = DeleteMessage(message.chatId, message.messageId)
+        try {
+            deleteMessage(deletedMessage)
+        } catch (e: TelegramApiException) {
+            BotLogger.error(LOGTAG, e)
+        }
+    }
+
     init {
         register(GreetCommand())
-        register(MeCommand())
     }
 }
 
