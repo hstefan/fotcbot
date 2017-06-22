@@ -53,10 +53,14 @@ class FotcBot : TelegramLongPollingCommandBot("FollowerOfTemercalypsersBot") {
     }
 
     private fun handleMeCommand(message: Message) {
-        val msgText = message.text.substring(message.text.indexOf(' ')).trim()
-        if (msgText.isEmpty())
+        val argsIndex = message.text.indexOf(' ')
+        if (argsIndex < 0) {
+            replyWithErrorMessage(message,
+                "At least one argument must be provided to the /me command.")
             return
+        }
 
+        val msgText = message.text.substring(argsIndex).trim()
         val replacingMesssage = SendMessage()
         replacingMesssage.enableMarkdown(true)
         replacingMesssage.setChatId(message.chatId)
@@ -70,6 +74,16 @@ class FotcBot : TelegramLongPollingCommandBot("FollowerOfTemercalypsersBot") {
         val deletedMessage = DeleteMessage(message.chatId, message.messageId)
         try {
             deleteMessage(deletedMessage)
+        } catch (e: TelegramApiException) {
+            BotLogger.error(LOGTAG, e)
+        }
+    }
+
+    private fun replyWithErrorMessage(message: Message, text: String) {
+        val errorMessage = SendMessage(message.chatId, text)
+        errorMessage.replyToMessageId = message.messageId
+        try {
+            sendMessage(errorMessage)
         } catch (e: TelegramApiException) {
             BotLogger.error(LOGTAG, e)
         }
