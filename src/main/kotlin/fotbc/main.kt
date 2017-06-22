@@ -53,11 +53,14 @@ class FotcBot : TelegramLongPollingCommandBot("FollowerOfTemercalypsersBot") {
     }
 
     private fun handleMeCommand(message: Message) {
-        val msgText = message.text.substring("/me".length).trim()
+        val msgText = message.text.substring(message.text.indexOf(' ')).trim()
+        if (msgText.isEmpty())
+            return
+
         val replacingMesssage = SendMessage()
         replacingMesssage.enableMarkdown(true)
         replacingMesssage.setChatId(message.chatId)
-        replacingMesssage.text = "*%s %s*".format(message.from.firstName, msgText)
+        replacingMesssage.text = "_%s %s_".format(message.from.firstName, msgText)
         try {
             sendMessage(replacingMesssage)
         } catch (e: TelegramApiException) {
