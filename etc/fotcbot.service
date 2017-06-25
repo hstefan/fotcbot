@@ -1,0 +1,13 @@
+[Unit]
+Description=Followers of Temercalypers Telegram Bot
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/java -jar fotcbot.jar
+User=fotcbot
+WorkingDirectory=/home/fotcbot
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
