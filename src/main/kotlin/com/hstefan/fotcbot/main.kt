@@ -1,4 +1,4 @@
-package fotbc
+package com.hstefan.fotcbot
 
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.TelegramBotsApi
@@ -34,7 +34,7 @@ class GreetCommand : BotCommand("greet", "Greet a user.") {
     }
 }
 
-class FotcBot : TelegramLongPollingCommandBot("FollowerOfTemercalypsersBot") {
+class FotcBot : TelegramLongPollingCommandBot("devfotcbot") {
 
     override fun getBotToken() = ""
 
