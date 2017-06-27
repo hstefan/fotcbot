@@ -19,9 +19,8 @@ import java.util.logging.ConsoleHandler
 import java.util.logging.Level
 
 
-private val LOGTAG = "FOTC"
+class GreetCommand(private var config: Config) : BotCommand("greet", "Greet a user.") {
 
-class GreetCommand : BotCommand("greet", "Greet a user.") {
     override fun execute(absSender: AbsSender?, user: User?, chat: Chat?, arguments: Array<out String>?) {
         val m = SendMessage()
         m.text = "Hello, %s!".format(user?.firstName)
@@ -29,20 +28,20 @@ class GreetCommand : BotCommand("greet", "Greet a user.") {
         try {
             absSender?.sendMessage(m)
         } catch(e: TelegramApiException) {
-            BotLogger.error(LOGTAG, e)
+            BotLogger.error(config.logTag, e)
         }
     }
 }
 
-class FotcBot : TelegramLongPollingCommandBot("devfotcbot") {
+class FotcBot(private var config: Config) : TelegramLongPollingCommandBot(config.name) {
 
-    override fun getBotToken() = ""
+    override fun getBotToken() = config.apiKey
 
     override fun processNonCommandUpdate(update: Update?) {
         if (update?.hasMessage()!!) {
             val msgText = update.message.text
             if (msgText.startsWith("/me")) {
-                BotLogger.info(LOGTAG, "Handling /me")
+                BotLogger.info(config.logTag, "Handling /me")
                 handleMeCommand(update.message)
             }
         }
@@ -68,14 +67,14 @@ class FotcBot : TelegramLongPollingCommandBot("devfotcbot") {
         try {
             sendMessage(replacingMesssage)
         } catch (e: TelegramApiException) {
-            BotLogger.error(LOGTAG, e)
+            BotLogger.error(config.logTag, e)
         }
 
         val deletedMessage = DeleteMessage(message.chatId, message.messageId)
         try {
             deleteMessage(deletedMessage)
         } catch (e: TelegramApiException) {
-            BotLogger.error(LOGTAG, e)
+            BotLogger.error(config.logTag, e)
         }
     }
 
@@ -85,33 +84,40 @@ class FotcBot : TelegramLongPollingCommandBot("devfotcbot") {
         try {
             sendMessage(errorMessage)
         } catch (e: TelegramApiException) {
-            BotLogger.error(LOGTAG, e)
+            BotLogger.error(config.logTag, e)
         }
     }
 
     init {
-        register(GreetCommand())
+        register(GreetCommand(this.config))
     }
 }
 
-fun initFotcLogger() {
+fun initFotcLogger(config: Config) {
     BotLogger.setLevel(Level.ALL)
     BotLogger.registerLogger(ConsoleHandler())
     try {
         BotLogger.registerLogger(BotsFileHandler())
     } catch (e: IOException) {
-        BotLogger.severe(LOGTAG, e)
+        BotLogger.severe(config.logTag, e)
     }
 }
 
 fun main(args: Array<String>) {
-    initFotcLogger()
+    val config = Config()
+    try {
+        config.load("fotcbot.properties")
+    } catch (e: IOException) {
+        config.save("fotcbot.properties")
+    }
+
+    initFotcLogger(config)
 
     ApiContextInitializer.init()
 
     val telegramBotsApi = TelegramBotsApi()
     try {
-        telegramBotsApi.registerBot(FotcBot())
+        telegramBotsApi.registerBot(FotcBot(config))
     } catch(e: TelegramApiException) {
         e.printStackTrace()
     }
