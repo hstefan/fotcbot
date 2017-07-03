@@ -7,6 +7,7 @@ import org.telegram.telegrambots.api.methods.send.SendPhoto
 import org.telegram.telegrambots.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.api.objects.Message
 import org.telegram.telegrambots.api.objects.Update
+import org.telegram.telegrambots.api.objects.User
 import org.telegram.telegrambots.api.objects.inlinequery.InlineQuery
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.exceptions.TelegramApiException
@@ -77,7 +78,6 @@ class FotcBot(private val config: Config) : TelegramLongPollingBot() {
         val httpClient = HttpClients.createDefault()
         val httpGet = HttpGet("https://memegen.link/%s/%s/%s.jpg".format(idEnc, topEnc, bottomEnc))
         val httpResp = httpClient.execute(httpGet)
-
         try {
             val image = ImageIO.read(httpResp.entity.content)
             val os = ByteArrayOutputStream()
@@ -85,7 +85,9 @@ class FotcBot(private val config: Config) : TelegramLongPollingBot() {
             val memePhoto = SendPhoto()
             memePhoto.chatId = message.chatId.toString()
             memePhoto.setNewPhoto("meme", ByteArrayInputStream(os.toByteArray()))
+            memePhoto.caption = makeMemeCaption(message.from, idEnc)
             sendPhoto(memePhoto)
+            deleteMessage(DeleteMessage(message.chatId, message.messageId))
         } catch (connEx: IOException) {
             BotLogger.error(config.logTag, connEx)
             replyWithErrorMessage(message, connEx.message.toString())
@@ -95,6 +97,13 @@ class FotcBot(private val config: Config) : TelegramLongPollingBot() {
         } finally {
             httpResp.close()
         }
+    }
+
+    private fun makeMemeCaption(user: User, memeId: String): String {
+        if (user.userName != null)
+            return "$memeId by @${user.userName}"
+        else
+            return "$memeId by ${user.firstName} ${user.lastName}"
     }
 
     private fun handleGreetCommand(message: Message) {
